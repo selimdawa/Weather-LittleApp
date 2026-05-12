@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Weather - Little App</string>
+
+    //Theme
+    <string name="basic_theme">Basic Theme</string>
+    <string name="sec_theme">Sec Theme</string>
+    <string name="date_weather">23/07/2022</string>
+    <string name="city_weather">Chicago</string>
+    <string name="c_weather">23°C</string>
+    <string name="c_c_weather">34°C/23°C</string>
+    <string name="status_weather">Sunny</string>
+    <string name="hours">Hours</string>
+    <string name="days">Days</string>
+    <string name="day_weather">Monday 23/07/2022</string>
 </resources>
