@@ -20,7 +20,6 @@ import androidx.fragment.app.activityViewModels
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -38,14 +37,11 @@ import timber.log.Timber
 
 class MainFragment : Fragment() {
 
-    private lateinit var fLocationClient: FusedLocationProviderClient
     private lateinit var pLauncher: ActivityResultLauncher<String>
-
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
 
     private val model: MainViewModel by activityViewModels()
-
     private val fList = listOf(HoursFragment.newInstance(), DaysFragment.newInstance())
     private val tList = listOf("Hours", "Days")
 
@@ -53,9 +49,7 @@ class MainFragment : Fragment() {
         super.onCreate(savedInstanceState)
         pLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             Toast.makeText(requireContext(), "Permission is: $isGranted", Toast.LENGTH_LONG).show()
-            if (isGranted) {
-                checkLocation()
-            }
+            if (isGranted) checkLocation()
         }
     }
 
@@ -108,7 +102,7 @@ class MainFragment : Fragment() {
     private fun parseWeatherData(result: String) {
         val mainObject = JSONObject(result)
         val list = parseDays(mainObject)
-        parseCurrentDate(mainObject, list[0])
+        parseCurrentDate(mainObject, list)
     }
 
     private fun parseDays(mainObject: JSONObject): List<WeatherModel> {
@@ -137,25 +131,26 @@ class MainFragment : Fragment() {
         return list
     }
 
-    private fun parseCurrentDate(mainObject: JSONObject, weatherItem: WeatherModel) {
+    private fun parseCurrentDate(mainObject: JSONObject, weatherItem: List<WeatherModel>) {
+        if (weatherItem.isEmpty()) return
         val current = mainObject.getJSONObject("current")
         val condition = current.getJSONObject("condition")
+        val firstDay = weatherItem[0]
 
         val item = WeatherModel(
             city = mainObject.getJSONObject("location").getString("name"),
             time = current.getString("last_updated"),
             condition = condition.getString("text"),
             currentTemp = "${current.getString("temp_c")}°C",
-            maxTemp = weatherItem.maxTemp,
-            minTemp = weatherItem.minTemp,
+            maxTemp = firstDay.maxTemp,
+            minTemp = firstDay.minTemp,
             imageUrl = condition.getString("icon"),
-            hours = weatherItem.hours
+            hours = firstDay.hours
         )
         model.liveDataCurrent.value = item
     }
 
     private fun init() {
-        fLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
         val adapter = vpAdapter(activity as FragmentActivity, fList)
         binding.vp.adapter = adapter
 
@@ -163,10 +158,7 @@ class MainFragment : Fragment() {
             tab.text = tList[pos]
         }.attach()
 
-        binding.ibSync.setOnClickListener {
-            checkLocation()
-        }
-
+        binding.ibSync.setOnClickListener { checkLocation() }
         binding.ibSearch.setOnClickListener {
             DialogManager.searchByNameDialog(requireContext(), object : DialogManager.Listener {
                 override fun onClick(name: String?) {
@@ -199,7 +191,8 @@ class MainFragment : Fragment() {
             ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return
         }
-        fLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, ct.token)
+        LocationServices.getFusedLocationProviderClient(requireContext())
+            .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, ct.token)
             .addOnCompleteListener { task ->
                 task.result?.let { location ->
                     getWeatherRequest("${location.latitude},${location.longitude}")

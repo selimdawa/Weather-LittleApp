@@ -4,6 +4,7 @@
     //Theme
     <string name="basic_theme">Basic Theme</string>
     <string name="sec_theme">Sec Theme</string>
+
     <string name="date_weather">23/07/2022</string>
     <string name="city_weather">Chicago</string>
     <string name="c_weather">23°C</string>
@@ -13,4 +14,6 @@
     <string name="days">Days</string>
     <string name="day_weather">Monday 23/07/2022</string>
     <string name="empty">Empty</string>
+    <string name="temperature_max_min_format">%1$s°C / %2$s°C</string>
+    <string name="temperature_current_format">%1$s°C</string>
 </resources>
