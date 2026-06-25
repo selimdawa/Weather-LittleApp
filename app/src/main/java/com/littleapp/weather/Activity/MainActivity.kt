@@ -13,12 +13,10 @@ class MainActivity : AppCompatActivity() {
     var context = this@MainActivity
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        //THEME.setThemeOfApp(context)
+        THEME.setThemeOfApp(context)
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        //binding.toolbar.nameSpace.text = DATA.Weather
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.placeholder, MainFragment.newInstance()).commit()

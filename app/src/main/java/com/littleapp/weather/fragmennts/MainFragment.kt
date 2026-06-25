@@ -40,17 +40,31 @@ class MainFragment : Fragment() {
 
     private lateinit var fLocationClient: FusedLocationProviderClient
     private lateinit var pLauncher: ActivityResultLauncher<String>
-    private lateinit var binding: FragmentMainBinding
+
+    private var _binding: FragmentMainBinding? = null
+    private val binding get() = _binding!!
+
     private val model: MainViewModel by activityViewModels()
 
     private val fList = listOf(HoursFragment.newInstance(), DaysFragment.newInstance())
     private val tList = listOf("Hours", "Days")
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        pLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            Toast.makeText(requireContext(), "Permission is: $isGranted", Toast.LENGTH_LONG).show()
+            if (isGranted) {
+                checkLocation()
+            }
+        }
+    }
+
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
-        binding = FragmentMainBinding.inflate(inflater, container, false)
+        _binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -67,23 +81,21 @@ class MainFragment : Fragment() {
         checkLocation()
     }
 
-    private fun updateCurrentCard() = with(binding) {
-        model.liveDataCurrent.observe(viewLifecycleOwner) {
-            val maxMin = "${it.maxTemp}°C / ${it.minTemp}°C"
-            tvCity.text = it.city
-            tvData.text = it.time
-            tvCondition.text = it.condition
-            tvCurrentTemp.text = it.currentTemp.ifEmpty { maxMin }
-            tvMaxMin.text = if (it.currentTemp.isEmpty()) DATA.EMPTY else maxMin
-            Picasso.get().load("https:" + it.imageUrl).into(imgIcon)
+    private fun updateCurrentCard() {
+        model.liveDataCurrent.observe(viewLifecycleOwner) { weather ->
+            val maxMin = "${weather.maxTemp}°C / ${weather.minTemp}°C"
+            binding.tvCity.text = weather.city
+            binding.tvData.text = weather.time
+            binding.tvCondition.text = weather.condition
+            binding.tvCurrentTemp.text = weather.currentTemp.ifEmpty { maxMin }
+            binding.tvMaxMin.text = if (weather.currentTemp.isEmpty()) DATA.EMPTY else maxMin
+            Picasso.get().load("https:${weather.imageUrl}").into(binding.imgIcon)
         }
     }
 
     private fun getWeatherRequest(city: String) {
-
         val queue = Volley.newRequestQueue(requireContext())
-        val url =
-            DATA.BASE_URL_WEATHER + DATA.API_KEY_WEATHER + "&q=" + city + "&days=" + "3" + "&aqi=no&alerts=no"
+        val url = "${DATA.BASE_URL_WEATHER}${DATA.API_KEY_WEATHER}&q=$city&days=3&aqi=no&alerts=no"
 
         val request = StringRequest(Request.Method.GET, url, { result ->
             parseWeatherData(result)
@@ -105,15 +117,19 @@ class MainFragment : Fragment() {
         val name = mainObject.getJSONObject("location").getString("name")
 
         for (i in 0 until daysArray.length()) {
-            val day = daysArray[i] as JSONObject
+            val day = daysArray.getJSONObject(i)
+            val dayInfo = day.getJSONObject("day")
+            val condition = dayInfo.getJSONObject("condition")
+
             val item = WeatherModel(
-                name, day.getString("date"),
-                day.getJSONObject("day").getJSONObject("condition").getString("text"),
-                DATA.EMPTY,
-                day.getJSONObject("day").getString("maxtemp_c").toFloat().toInt().toString(),
-                day.getJSONObject("day").getString("mintemp_c").toFloat().toInt().toString(),
-                day.getJSONObject("day").getJSONObject("condition").getString("icon"),
-                day.getJSONArray("hour").toString()
+                city = name,
+                time = day.getString("date"),
+                condition = condition.getString("text"),
+                currentTemp = DATA.EMPTY,
+                maxTemp = dayInfo.getString("maxtemp_c").toFloat().toInt().toString(),
+                minTemp = dayInfo.getString("mintemp_c").toFloat().toInt().toString(),
+                imageUrl = condition.getString("icon"),
+                hours = day.getJSONArray("hour").toString()
             )
             list.add(item)
         }
@@ -122,37 +138,39 @@ class MainFragment : Fragment() {
     }
 
     private fun parseCurrentDate(mainObject: JSONObject, weatherItem: WeatherModel) {
+        val current = mainObject.getJSONObject("current")
+        val condition = current.getJSONObject("condition")
 
         val item = WeatherModel(
-            mainObject.getJSONObject("location").getString("name"),
-            mainObject.getJSONObject("current").getString("last_updated"),
-            mainObject.getJSONObject("current").getJSONObject("condition").getString("text"),
-            mainObject.getJSONObject("current").getString("temp_c") + "°C",
-            weatherItem.maxTemp,
-            weatherItem.minTemp,
-            mainObject.getJSONObject("current").getJSONObject("condition").getString("icon"),
-            weatherItem.hours
+            city = mainObject.getJSONObject("location").getString("name"),
+            time = current.getString("last_updated"),
+            condition = condition.getString("text"),
+            currentTemp = "${current.getString("temp_c")}°C",
+            maxTemp = weatherItem.maxTemp,
+            minTemp = weatherItem.minTemp,
+            imageUrl = condition.getString("icon"),
+            hours = weatherItem.hours
         )
         model.liveDataCurrent.value = item
     }
 
-    private fun init() = with(binding) {
+    private fun init() {
         fLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
         val adapter = vpAdapter(activity as FragmentActivity, fList)
-        vp.adapter = adapter
+        binding.vp.adapter = adapter
 
-        TabLayoutMediator(tabLayout, vp) { tab, pos ->
+        TabLayoutMediator(binding.tabLayout, binding.vp) { tab, pos ->
             tab.text = tList[pos]
         }.attach()
 
-        ibSync.setOnClickListener {
+        binding.ibSync.setOnClickListener {
             checkLocation()
         }
 
-        ibSearch.setOnClickListener {
+        binding.ibSearch.setOnClickListener {
             DialogManager.searchByNameDialog(requireContext(), object : DialogManager.Listener {
                 override fun onClick(name: String?) {
-                    name?.let { it1 -> getWeatherRequest(it1) }
+                    name?.let { city -> getWeatherRequest(city) }
                 }
             })
         }
@@ -177,31 +195,27 @@ class MainFragment : Fragment() {
 
     private fun getLocation() {
         val ct = CancellationTokenSource()
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return
         }
         fLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, ct.token)
-            .addOnCompleteListener {
-                getWeatherRequest("${it.result.latitude},${it.result.longitude}")
+            .addOnCompleteListener { task ->
+                task.result?.let { location ->
+                    getWeatherRequest("${location.latitude},${location.longitude}")
+                }
             }
-    }
-
-    private fun permissionListener() {
-        pLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            Toast.makeText(requireContext(), "Permission is: $it", Toast.LENGTH_LONG).show()
-        }
     }
 
     private fun checkPermission() {
         if (!isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            permissionListener()
             pLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

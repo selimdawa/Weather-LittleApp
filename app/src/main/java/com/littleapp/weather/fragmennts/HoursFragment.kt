@@ -13,53 +13,64 @@ import com.littleapp.weather.adatpers.WeatherAdapter
 import com.littleapp.weather.models.MainViewModel
 import com.littleapp.weather.models.WeatherModel
 import org.json.JSONArray
-import org.json.JSONObject
 
 class HoursFragment : Fragment() {
 
-    lateinit var binding: FragmentHoursBinding
-    lateinit var adapter: WeatherAdapter
+    private var _binding: FragmentHoursBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var adapter: WeatherAdapter
     private val model: MainViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
-        binding = FragmentHoursBinding.inflate(inflater, container, false)
+        _binding = FragmentHoursBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initRcView()
-        model.liveDataCurrent.observe(viewLifecycleOwner) {
-            adapter.submitList(getHoursList(it))
-        }
-    }
 
-    fun initRcView() = with(binding) {
         adapter = WeatherAdapter(null)
-        rcViewHours.layoutManager = LinearLayoutManager(requireContext())
-        rcViewHours.adapter = adapter
+        binding.rcViewHours.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@HoursFragment.adapter
+        }
+
+        model.liveDataCurrent.observe(viewLifecycleOwner) { weatherItem ->
+            adapter.submitList(getHoursList(weatherItem))
+        }
     }
 
     private fun getHoursList(wItem: WeatherModel): List<WeatherModel> {
         val list = ArrayList<WeatherModel>()
         val hoursArray = JSONArray(wItem.hours)
+
         for (i in 0 until hoursArray.length()) {
+            val hourObject = hoursArray.getJSONObject(i)
+            val conditionObject = hourObject.getJSONObject("condition")
+            val tempInt = hourObject.getString("temp_c").toFloat().toInt()
+
             val item = WeatherModel(
-                wItem.city,
-                (hoursArray[i] as JSONObject).getString("time"),
-                (hoursArray[i] as JSONObject).getJSONObject("condition")
-                    .getString("text"),
-                (hoursArray[i] as JSONObject).getString("temp_c")
-                    .toFloat().toInt().toString() + "°C", DATA.EMPTY, DATA.EMPTY,
-                (hoursArray[i] as JSONObject).getJSONObject("condition")
-                    .getString("icon"), DATA.EMPTY
+                city = wItem.city,
+                time = hourObject.getString("time"),
+                condition = conditionObject.getString("text"),
+                currentTemp = "$tempInt°C",
+                maxTemp = DATA.EMPTY,
+                minTemp = DATA.EMPTY,
+                imageUrl = conditionObject.getString("icon"),
+                hours = DATA.EMPTY
             )
             list.add(item)
         }
         return list
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

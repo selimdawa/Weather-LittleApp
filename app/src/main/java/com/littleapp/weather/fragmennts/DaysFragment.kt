@@ -14,36 +14,45 @@ import com.littleapp.weather.models.WeatherModel
 
 class DaysFragment : Fragment(), WeatherAdapter.Listener {
 
-    lateinit var binding: FragmentDaysBinding
-    lateinit var adapter: WeatherAdapter
+    private var _binding: FragmentDaysBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var adapter: WeatherAdapter
     private val model: MainViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
-        binding = FragmentDaysBinding.inflate(inflater, container, false)
+        _binding = FragmentDaysBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        init()
-        model.liveDataList.observe(viewLifecycleOwner) { adapter.submitList(it) }
+
+        adapter = WeatherAdapter(this)
+        binding.rcView.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@DaysFragment.adapter
+        }
+
+        model.liveDataList.observe(viewLifecycleOwner) { weatherList ->
+            adapter.submitList(weatherList)
+        }
     }
 
-    private fun init() = with(binding) {
-        rcView.layoutManager = LinearLayoutManager(requireContext())
-        adapter = WeatherAdapter(this@DaysFragment)
-        rcView.adapter = adapter
+    override fun onClick(item: WeatherModel) {
+        model.liveDataCurrent.value = item
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {
         @JvmStatic
         fun newInstance() = DaysFragment()
-    }
-
-    override fun onClick(item: WeatherModel) {
-        model.liveDataCurrent.value = item
     }
 }
