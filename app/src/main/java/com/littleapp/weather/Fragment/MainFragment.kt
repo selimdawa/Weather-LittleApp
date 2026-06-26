@@ -1,4 +1,4 @@
-package com.littleapp.weather.fragmennts
+package com.littleapp.weather.Fragment
 
 import android.Manifest
 import android.content.Context
@@ -26,11 +26,11 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.material.tabs.TabLayoutMediator
 import com.littleapp.weather.DialogManager
 import com.littleapp.weather.Unit.DATA
-import com.littleapp.weather.adatpers.vpAdapter
+import com.littleapp.weather.Adatper.vpAdapter
 import com.littleapp.weather.databinding.FragmentMainBinding
 import com.littleapp.weather.isPermissionGranted
-import com.littleapp.weather.models.MainViewModel
-import com.littleapp.weather.models.WeatherModel
+import com.littleapp.weather.Model.MainViewModel
+import com.littleapp.weather.Model.WeatherModel
 import com.squareup.picasso.Picasso
 import org.json.JSONObject
 import timber.log.Timber
@@ -94,7 +94,7 @@ class MainFragment : Fragment() {
         val request = StringRequest(Request.Method.GET, url, { result ->
             parseWeatherData(result)
         }, { error ->
-            Timber.d("Error: $error")
+            Timber.d(error)
         })
         queue.add(request)
     }

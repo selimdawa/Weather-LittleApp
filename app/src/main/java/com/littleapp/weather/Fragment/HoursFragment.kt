@@ -1,4 +1,4 @@
-package com.littleapp.weather.fragmennts
+package com.littleapp.weather.Fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,9 +9,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.littleapp.weather.Unit.DATA
 import com.littleapp.weather.databinding.FragmentHoursBinding
-import com.littleapp.weather.adatpers.WeatherAdapter
-import com.littleapp.weather.models.MainViewModel
-import com.littleapp.weather.models.WeatherModel
+import com.littleapp.weather.Adatper.WeatherAdapter
+import com.littleapp.weather.Model.MainViewModel
+import com.littleapp.weather.Model.WeatherModel
 import org.json.JSONArray
 
 class HoursFragment : Fragment() {

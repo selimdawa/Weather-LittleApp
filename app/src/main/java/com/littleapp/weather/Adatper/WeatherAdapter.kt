@@ -1,4 +1,4 @@
-package com.littleapp.weather.adatpers
+package com.littleapp.weather.Adatper
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,33 +6,31 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.littleapp.weather.databinding.ItemWeatherBinding
-import com.littleapp.weather.models.WeatherModel
+import com.littleapp.weather.Model.WeatherModel
 import com.squareup.picasso.Picasso
 
 class WeatherAdapter(private val listener: Listener?) :
     ListAdapter<WeatherModel, WeatherAdapter.Holder>(Comparator()) {
 
     class Holder(
-        val binding: ItemWeatherBinding,
+        private val binding: ItemWeatherBinding,
         private val listener: Listener?
     ) : RecyclerView.ViewHolder(binding.root) {
 
         private var itemTemp: WeatherModel? = null
 
         init {
-            itemView.setOnClickListener {
+            binding.root.setOnClickListener {
                 itemTemp?.let { item -> listener?.onClick(item) }
             }
         }
 
         fun bind(item: WeatherModel) {
             itemTemp = item
-            binding.apply {
-                tvDate.text = item.time
-                tvCondition.text = item.condition
-                tvTemp.text = item.currentTemp.ifEmpty { "${item.maxTemp}°C / ${item.minTemp}°C" }
-                Picasso.get().load("https:${item.imageUrl}").into(imgListIcon)
-            }
+            binding.tvDate.text = item.time
+            binding.tvCondition.text = item.condition
+            binding.tvTemp.text = item.currentTemp.ifEmpty { "${item.maxTemp}°C / ${item.minTemp}°C" }
+            Picasso.get().load("https:${item.imageUrl}").into(binding.imgListIcon)
         }
     }
 
@@ -47,8 +45,7 @@ class WeatherAdapter(private val listener: Listener?) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
-        val inflater = LayoutInflater.from(parent.context)
-        val binding = ItemWeatherBinding.inflate(inflater, parent, false)
+        val binding = ItemWeatherBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return Holder(binding, listener)
     }
 
