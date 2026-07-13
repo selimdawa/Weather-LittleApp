@@ -1,5 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.ksp)
+    alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.navigation.safeargs.kotlin)
 }
 
 android {
@@ -47,8 +50,25 @@ dependencies {
     //Layout
     implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
+    //Image
+    implementation(libs.picasso)                           //Picasso Image
+    //Lifecycle
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    //Coroutines
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+    //Room
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    //Navigation
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+    //Dagger - Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.hilt.navigation.fragment)
     //Other's
-    implementation(libs.picasso)                           //Picasso
     implementation(libs.volley)                            //Volley
     implementation(libs.play.services.location)            //Weather Location
     implementation(libs.play.services.location.license)
