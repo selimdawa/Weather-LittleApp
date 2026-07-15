@@ -16,7 +16,7 @@ import com.littleapp.weather.R
 fun Context.applyAppTheme() {
     val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
     if (sharedPreferences.getString("color_option", "BASIC") == "BASIC") {
-        setTheme(R.style.Base_Theme_MainApp)
+        setTheme(R.style.Theme_MainApp)
     }
 }
 

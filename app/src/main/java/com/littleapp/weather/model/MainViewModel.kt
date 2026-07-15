@@ -23,8 +23,8 @@ class MainViewModel @Inject constructor(private val dao: WeatherDao) : ViewModel
 
     var lastCity: String? = null
 
-    val savedWeather: StateFlow<WeatherModel?> = dao.getLatestWeather()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val savedWeather: StateFlow<WeatherModel?> =
+        dao.getLatestWeather().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun updateCurrent(weather: WeatherModel) {
         _liveDataCurrent.value = weather
