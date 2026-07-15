@@ -7,7 +7,7 @@
     android:layout_marginHorizontal="10dp"
     android:layout_marginTop="5dp"
     android:layout_marginBottom="5dp"
-    app:cardBackgroundColor="#22FFFFFF"
+    app:cardBackgroundColor="@color/white_22"
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
     app:strokeWidth="0dp">
@@ -21,10 +21,10 @@
             android:id="@+id/tv_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
             android:text="@string/day_weather"
             android:textColor="@color/white"
             android:textSize="16sp"
-            android:fontFamily="sans-serif-medium"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -44,8 +44,8 @@
             android:id="@+id/img_list_icon"
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:contentDescription="@string/weather_icon"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_home"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -55,10 +55,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
+            android:fontFamily="sans-serif-medium"
             android:text="@string/c_weather"
             android:textColor="@color/white"
             android:textSize="20sp"
-            android:fontFamily="sans-serif-medium"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/img_list_icon"
             app:layout_constraintTop_toTopOf="parent" />

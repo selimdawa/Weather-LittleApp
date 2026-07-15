@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?background">
@@ -11,7 +10,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        app:cardBackgroundColor="#33FFFFFF"
+        app:cardBackgroundColor="@color/white_33"
         app:cardCornerRadius="28dp"
         app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -40,10 +39,10 @@
                 android:id="@+id/img_icon"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
+                android:contentDescription="@string/weather_icon"
                 android:scaleType="fitCenter"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="ContentDescription" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/tv_city"
@@ -100,26 +99,26 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginTop="16dp"
+                android:contentDescription="@string/search"
                 app:icon="@drawable/ic_search"
                 app:iconSize="24dp"
                 app:iconTint="@color/white"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tv_max_min"
-                tools:ignore="SpeakableTextPresentCheck" />
+                app:layout_constraintTop_toBottomOf="@+id/tv_max_min" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/ib_sync"
                 style="?attr/materialIconButtonStyle"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
+                android:contentDescription="@string/sync"
                 app:icon="@drawable/ic_sync"
                 app:iconSize="24dp"
                 app:iconTint="@color/white"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/ib_search"
-                tools:ignore="SpeakableTextPresentCheck" />
+                app:layout_constraintTop_toTopOf="@+id/ib_search" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -139,7 +138,7 @@
         app:tabIndicatorHeight="3dp"
         app:tabRippleColor="@android:color/transparent"
         app:tabSelectedTextColor="@color/white"
-        app:tabTextColor="#B3FFFFFF">
+        app:tabTextColor="@color/white_b3">
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"

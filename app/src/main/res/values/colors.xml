@@ -8,6 +8,8 @@
     //Day Theme
     <color name="basic_2">#3c415e</color>
     <color name="basic_night">#999999</color>
-
-    <color name="card_blue_bg">#6606A9F4</color>
+    //Weather
+    <color name="white_33">#33FFFFFF</color>
+    <color name="white_b3">#B3FFFFFF</color>
+    <color name="white_22">#22FFFFFF</color>
 </resources>
