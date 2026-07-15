@@ -5,8 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.littleapp.weather.R
 import com.littleapp.weather.databinding.FragmentDaysBinding
 import com.littleapp.weather.adatper.WeatherAdapter
 import com.littleapp.weather.model.MainViewModel
@@ -19,7 +20,7 @@ class DaysFragment : Fragment(), WeatherAdapter.Listener {
     private var _binding: FragmentDaysBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: WeatherAdapter
-    private val model: MainViewModel by activityViewModels()
+    private val model: MainViewModel by hiltNavGraphViewModels(R.id.nav_graph)
 
     override fun onCreateView(
         inflater: LayoutInflater,

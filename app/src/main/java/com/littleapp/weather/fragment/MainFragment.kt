@@ -16,7 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.activityViewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
@@ -24,6 +24,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.material.tabs.TabLayoutMediator
+import com.littleapp.weather.R
 import com.littleapp.weather.utils.DialogManager
 import com.littleapp.weather.utils.DATA
 import com.littleapp.weather.adatper.vpAdapter
@@ -43,7 +44,7 @@ class MainFragment : Fragment() {
     private var _binding: FragmentMainBinding? = null
     private val binding get() = _binding!!
 
-    private val model: MainViewModel by activityViewModels()
+    private val model: MainViewModel by hiltNavGraphViewModels(R.id.nav_graph)
     private val fList = listOf(HoursFragment.newInstance(), DaysFragment.newInstance())
     private val tList = listOf("Hours", "Days")
 
