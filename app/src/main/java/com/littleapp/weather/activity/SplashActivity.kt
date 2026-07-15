@@ -1,46 +1,40 @@
 package com.littleapp.weather.activity
 
-import android.content.Context
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.littleapp.weather.databinding.ActivitySplashBinding
 import com.littleapp.weather.utils.CLASS
 import com.littleapp.weather.utils.THEME
 import com.littleapp.weather.utils.VOID
-import com.littleapp.weather.databinding.ActivitySplashBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
+@SuppressLint("CustomSplashScreen")
 @AndroidEntryPoint
 class SplashActivity : AppCompatActivity() {
 
     private var _binding: ActivitySplashBinding? = null
     private val binding get() = _binding!!
-    private val context: Context = this
-
-    private val timePerSecond = 2
-    private val timeFinal = TIME_PER_MILLIS * timePerSecond
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        THEME.setThemeOfApp(context)
+        THEME.setThemeOfApp(this)
         super.onCreate(savedInstanceState)
         _binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        Handler(Looper.getMainLooper()).postDelayed({ launch() }, timeFinal.toLong())
-    }
-
-    private fun launch() {
-        VOID.Intent1(context, CLASS.MAIN)
-        finish()
+        lifecycleScope.launch {
+            delay(1000.milliseconds)
+            VOID.Intent1(this@SplashActivity, CLASS.MAIN)
+            finish()
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
-    }
-
-    companion object {
-        private const val TIME_PER_MILLIS = 1000
     }
 }

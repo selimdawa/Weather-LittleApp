@@ -1,6 +1,11 @@
 package com.littleapp.weather.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "weather")
 data class WeatherModel(
+    @PrimaryKey(autoGenerate = true) val id: Int? = null,
     val city: String,
     val time: String,
     val condition: String,

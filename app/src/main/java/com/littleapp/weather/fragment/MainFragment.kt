@@ -15,8 +15,10 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
@@ -25,15 +27,16 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.material.tabs.TabLayoutMediator
 import com.littleapp.weather.R
-import com.littleapp.weather.utils.DialogManager
-import com.littleapp.weather.utils.DATA
-import com.littleapp.weather.adatper.vpAdapter
+import com.littleapp.weather.adatper.ViewPagerAdapter
 import com.littleapp.weather.databinding.FragmentMainBinding
-import com.littleapp.weather.utils.isPermissionGranted
 import com.littleapp.weather.model.MainViewModel
 import com.littleapp.weather.model.WeatherModel
+import com.littleapp.weather.utils.DATA
+import com.littleapp.weather.utils.DialogManager
+import com.littleapp.weather.utils.isPermissionGranted
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import timber.log.Timber
 
@@ -45,21 +48,21 @@ class MainFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val model: MainViewModel by hiltNavGraphViewModels(R.id.nav_graph)
-    private val fList = listOf(HoursFragment.newInstance(), DaysFragment.newInstance())
+    private val fList by lazy { listOf(HoursFragment.newInstance(), DaysFragment.newInstance()) }
     private val tList = listOf("Hours", "Days")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        pLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            Toast.makeText(requireContext(), "Permission is: $isGranted", Toast.LENGTH_LONG).show()
-            if (isGranted) checkLocation()
-        }
+        pLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+                if (isGranted) checkLocation() else Toast.makeText(
+                    requireContext(), "Permission denied", Toast.LENGTH_SHORT
+                ).show()
+            }
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
         return binding.root
@@ -67,9 +70,9 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        checkPermission()
         init()
-        updateCurrentCard()
+        observeData()
+        checkPermission()
         checkLocation()
     }
 
@@ -78,28 +81,44 @@ class MainFragment : Fragment() {
         checkLocation()
     }
 
-    private fun updateCurrentCard() {
-        model.liveDataCurrent.observe(viewLifecycleOwner) { weather ->
-            val maxMin = "${weather.maxTemp}°C / ${weather.minTemp}°C"
-            binding.tvCity.text = weather.city
-            binding.tvData.text = weather.time
-            binding.tvCondition.text = weather.condition
-            binding.tvCurrentTemp.text = weather.currentTemp.ifEmpty { maxMin }
-            binding.tvMaxMin.text = if (weather.currentTemp.isEmpty()) DATA.EMPTY else maxMin
-            Picasso.get().load("https:${weather.imageUrl}").into(binding.imgIcon)
+    private fun observeData() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    model.savedWeather.collect { weather ->
+                        weather?.let { model.updateCurrent(it) }
+                    }
+                }
+                launch {
+                    model.liveDataCurrent.collect { weather ->
+                        weather?.let { updateUI(it) }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateUI(weather: WeatherModel) {
+        val maxMin = "${weather.maxTemp}°C / ${weather.minTemp}°C"
+        with(binding) {
+            tvCity.text = weather.city
+            tvData.text = weather.time
+            tvCondition.text = weather.condition
+            tvCurrentTemp.text = weather.currentTemp.ifEmpty { maxMin }
+            tvMaxMin.text = if (weather.currentTemp.isEmpty()) DATA.EMPTY else maxMin
+            Picasso.get().load("https:${weather.imageUrl}").into(imgIcon)
         }
     }
 
     private fun getWeatherRequest(city: String) {
-        val queue = Volley.newRequestQueue(requireContext())
         val url = "${DATA.BASE_URL_WEATHER}${DATA.API_KEY_WEATHER}&q=$city&days=3&aqi=no&alerts=no"
-
-        val request = StringRequest(Request.Method.GET, url, { result ->
-            parseWeatherData(result)
-        }, { error ->
-            Timber.d(error)
-        })
-        queue.add(request)
+        val request = StringRequest(
+            Request.Method.GET,
+            url,
+            { result -> parseWeatherData(result) },
+            { error -> Timber.d(error) },
+        )
+        Volley.newRequestQueue(requireContext()).add(request)
     }
 
     private fun parseWeatherData(result: String) {
@@ -108,6 +127,7 @@ class MainFragment : Fragment() {
         parseCurrentDate(mainObject, list)
     }
 
+    @Suppress("SpellCheckingInspection")
     private fun parseDays(mainObject: JSONObject): List<WeatherModel> {
         val list = ArrayList<WeatherModel>()
         val daysArray = mainObject.getJSONObject("forecast").getJSONArray("forecastday")
@@ -118,19 +138,20 @@ class MainFragment : Fragment() {
             val dayInfo = day.getJSONObject("day")
             val condition = dayInfo.getJSONObject("condition")
 
-            val item = WeatherModel(
-                city = name,
-                time = day.getString("date"),
-                condition = condition.getString("text"),
-                currentTemp = DATA.EMPTY,
-                maxTemp = dayInfo.getString("maxtemp_c").toFloat().toInt().toString(),
-                minTemp = dayInfo.getString("mintemp_c").toFloat().toInt().toString(),
-                imageUrl = condition.getString("icon"),
-                hours = day.getJSONArray("hour").toString()
+            list.add(
+                WeatherModel(
+                    city = name,
+                    time = day.getString("date"),
+                    condition = condition.getString("text"),
+                    currentTemp = DATA.EMPTY,
+                    maxTemp = dayInfo.getString("maxtemp_c").toFloat().toInt().toString(),
+                    minTemp = dayInfo.getString("mintemp_c").toFloat().toInt().toString(),
+                    imageUrl = condition.getString("icon"),
+                    hours = day.getJSONArray("hour").toString(),
+                )
             )
-            list.add(item)
         }
-        model.liveDataList.value = list
+        model.updateList(list)
         return list
     }
 
@@ -150,13 +171,12 @@ class MainFragment : Fragment() {
             imageUrl = condition.getString("icon"),
             hours = firstDay.hours
         )
-        model.liveDataCurrent.value = item
+        model.updateCurrent(item)
+        model.saveWeather(item)
     }
 
     private fun init() {
-        val adapter = vpAdapter(activity as FragmentActivity, fList)
-        binding.vp.adapter = adapter
-
+        binding.vp.adapter = ViewPagerAdapter(requireActivity(), fList)
         TabLayoutMediator(binding.tabLayout, binding.vp) { tab, pos ->
             tab.text = tList[pos]
         }.attach()
@@ -165,16 +185,14 @@ class MainFragment : Fragment() {
         binding.ibSearch.setOnClickListener {
             DialogManager.searchByNameDialog(requireContext(), object : DialogManager.Listener {
                 override fun onClick(name: String?) {
-                    name?.let { city -> getWeatherRequest(city) }
+                    name?.let { getWeatherRequest(it) }
                 }
             })
         }
     }
 
     private fun checkLocation() {
-        if (isLocationEnabled()) {
-            getLocation()
-        } else {
+        if (isLocationEnabled()) getLocation() else {
             DialogManager.locationSettingsDialog(requireContext(), object : DialogManager.Listener {
                 override fun onClick(name: String?) {
                     startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
@@ -184,22 +202,19 @@ class MainFragment : Fragment() {
     }
 
     private fun isLocationEnabled(): Boolean {
-        val lm = activity?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val lm = requireContext().getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 
     private fun getLocation() {
-        val ct = CancellationTokenSource()
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return
-        }
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) return
         LocationServices.getFusedLocationProviderClient(requireContext())
-            .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, ct.token)
+            .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token)
             .addOnCompleteListener { task ->
-                task.result?.let { location ->
-                    getWeatherRequest("${location.latitude},${location.longitude}")
-                }
+                task.result?.let { getWeatherRequest("${it.latitude},${it.longitude}") }
             }
     }
 
@@ -212,10 +227,5 @@ class MainFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    companion object {
-        @JvmStatic
-        fun newInstance() = MainFragment()
     }
 }
