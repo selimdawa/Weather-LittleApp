@@ -2,7 +2,12 @@ package com.littleapp.weather.utils
 
 import android.app.AlertDialog
 import android.content.Context
-import android.widget.EditText
+import android.graphics.Color
+import android.view.LayoutInflater
+import androidx.core.graphics.drawable.toDrawable
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import com.littleapp.weather.R
 
 object DialogManager {
 
@@ -23,15 +28,23 @@ object DialogManager {
 
     fun searchByNameDialog(context: Context, listener: Listener) {
         val builder = AlertDialog.Builder(context)
-        val edName = EditText(context)
-        builder.setView(edName)
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_search, null)
+        builder.setView(view)
         val dialog = builder.create()
-        dialog.setTitle("City name:")
-        dialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK") { _, _ ->
-            listener.onClick(edName.text.toString())
-            dialog.dismiss()
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+
+        val edCity = view.findViewById<TextInputEditText>(R.id.edCity)
+        val btnOk = view.findViewById<MaterialButton>(R.id.btnOk)
+        val btnCancel = view.findViewById<MaterialButton>(R.id.btnCancel)
+
+        btnOk.setOnClickListener {
+            val name = edCity.text.toString()
+            if (name.isNotEmpty()) {
+                listener.onClick(name)
+                dialog.dismiss()
+            }
         }
-        dialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel") { _, _ ->
+        btnCancel.setOnClickListener {
             dialog.dismiss()
         }
         dialog.show()

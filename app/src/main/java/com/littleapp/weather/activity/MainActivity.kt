@@ -3,7 +3,7 @@ package com.littleapp.weather.activity
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.littleapp.weather.databinding.ActivityMainBinding
-import com.littleapp.weather.utils.THEME
+import com.littleapp.weather.utils.applyAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -13,7 +13,7 @@ class MainActivity : AppCompatActivity() {
     private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        THEME.setThemeOfApp(this)
+        applyAppTheme()
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)

@@ -2,6 +2,7 @@ package com.littleapp.weather.adatper
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -9,8 +10,9 @@ import com.littleapp.weather.databinding.ItemWeatherBinding
 import com.littleapp.weather.model.WeatherModel
 import coil.load
 
-class WeatherAdapter(private val listener: Listener?) :
-    ListAdapter<WeatherModel, WeatherAdapter.Holder>(Comparator()) {
+class WeatherAdapter(
+    private val listener: Listener?,
+) : ListAdapter<WeatherModel, WeatherAdapter.Holder>(Comparator()) {
 
     class Holder(
         private val binding: ItemWeatherBinding,
@@ -25,12 +27,20 @@ class WeatherAdapter(private val listener: Listener?) :
             }
         }
 
-        fun bind(item: WeatherModel) {
+        fun bind(item: WeatherModel, isLast: Boolean) {
             itemTemp = item
             binding.tvDate.text = item.time
             binding.tvCondition.text = item.condition
             binding.tvTemp.text = item.currentTemp.ifEmpty { "${item.maxTemp}°C / ${item.minTemp}°C" }
             binding.imgListIcon.load("https:${item.imageUrl}")
+
+            binding.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = if (isLast) {
+                    (10 * binding.root.context.resources.displayMetrics.density).toInt()
+                } else {
+                    (5 * binding.root.context.resources.displayMetrics.density).toInt()
+                }
+            }
         }
     }
 
@@ -50,7 +60,7 @@ class WeatherAdapter(private val listener: Listener?) :
     }
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), position == (itemCount - 1))
     }
 
     interface Listener {

@@ -19,6 +19,7 @@ import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import coil.load
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
@@ -34,7 +35,8 @@ import com.littleapp.weather.model.WeatherModel
 import com.littleapp.weather.utils.DATA
 import com.littleapp.weather.utils.DialogManager
 import com.littleapp.weather.utils.isPermissionGranted
-import coil.load
+import com.littleapp.weather.utils.startRotation
+import com.littleapp.weather.utils.stopRotation
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -49,7 +51,7 @@ class MainFragment : Fragment() {
 
     private val model: MainViewModel by hiltNavGraphViewModels(R.id.nav_graph)
     private val fList by lazy { listOf(HoursFragment.newInstance(), DaysFragment.newInstance()) }
-    private val tList = listOf("Hours", "Days")
+    private val tList by lazy { listOf(getString(R.string.hours), getString(R.string.days)) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,6 +75,7 @@ class MainFragment : Fragment() {
         init()
         observeData()
         checkPermission()
+        binding.ibSync.startRotation()
         checkLocation()
     }
 
@@ -115,8 +118,14 @@ class MainFragment : Fragment() {
         val request = StringRequest(
             Request.Method.GET,
             url,
-            { result -> parseWeatherData(result) },
-            { error -> Timber.d(error) },
+            { result ->
+                binding.ibSync.stopRotation()
+                parseWeatherData(result)
+            },
+            { error ->
+                binding.ibSync.stopRotation()
+                Timber.d(error)
+            },
         )
         Volley.newRequestQueue(requireContext()).add(request)
     }
@@ -127,7 +136,6 @@ class MainFragment : Fragment() {
         parseCurrentDate(mainObject, list)
     }
 
-    @Suppress("SpellCheckingInspection")
     private fun parseDays(mainObject: JSONObject): List<WeatherModel> {
         val list = ArrayList<WeatherModel>()
         val daysArray = mainObject.getJSONObject("forecast").getJSONArray("forecastday")
@@ -181,18 +189,27 @@ class MainFragment : Fragment() {
             tab.text = tList[pos]
         }.attach()
 
-        binding.ibSync.setOnClickListener { checkLocation() }
+        binding.ibSync.setOnClickListener {
+            binding.ibSync.startRotation()
+            checkLocation()
+        }
         binding.ibSearch.setOnClickListener {
             DialogManager.searchByNameDialog(requireContext(), object : DialogManager.Listener {
                 override fun onClick(name: String?) {
-                    name?.let { getWeatherRequest(it) }
+                    name?.let {
+                        binding.ibSync.startRotation()
+                        getWeatherRequest(it)
+                    }
                 }
             })
         }
     }
 
     private fun checkLocation() {
-        if (isLocationEnabled()) getLocation() else {
+        if (isLocationEnabled()) {
+            getLocation()
+        } else {
+            binding.ibSync.stopRotation()
             DialogManager.locationSettingsDialog(requireContext(), object : DialogManager.Listener {
                 override fun onClick(name: String?) {
                     startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
@@ -210,11 +227,16 @@ class MainFragment : Fragment() {
         if (ActivityCompat.checkSelfPermission(
                 requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
-        ) return
+        ) {
+            binding.ibSync.stopRotation()
+            return
+        }
         LocationServices.getFusedLocationProviderClient(requireContext())
             .getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token)
             .addOnCompleteListener { task ->
-                task.result?.let { getWeatherRequest("${it.latitude},${it.longitude}") }
+                task.result?.let {
+                    getWeatherRequest("${it.latitude},${it.longitude}")
+                } ?: binding.ibSync.stopRotation()
             }
     }
 
