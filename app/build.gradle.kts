@@ -51,7 +51,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
     //Image
-    implementation(libs.picasso)                           //Picasso Image
+    implementation(libs.coil)                              //Coil Image
     //Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -71,6 +71,5 @@ dependencies {
     //Other's
     implementation(libs.volley)                            //Volley
     implementation(libs.play.services.location)            //Weather Location
-    implementation(libs.play.services.location.license)
     implementation(libs.timber)                            //Timber Log
 }

@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.littleapp.weather.databinding.ItemWeatherBinding
 import com.littleapp.weather.model.WeatherModel
-import com.squareup.picasso.Picasso
+import coil.load
 
 class WeatherAdapter(private val listener: Listener?) :
     ListAdapter<WeatherModel, WeatherAdapter.Holder>(Comparator()) {
@@ -30,7 +30,7 @@ class WeatherAdapter(private val listener: Listener?) :
             binding.tvDate.text = item.time
             binding.tvCondition.text = item.condition
             binding.tvTemp.text = item.currentTemp.ifEmpty { "${item.maxTemp}°C / ${item.minTemp}°C" }
-            Picasso.get().load("https:${item.imageUrl}").into(binding.imgListIcon)
+            binding.imgListIcon.load("https:${item.imageUrl}")
         }
     }
 

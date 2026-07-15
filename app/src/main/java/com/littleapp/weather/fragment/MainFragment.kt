@@ -34,7 +34,7 @@ import com.littleapp.weather.model.WeatherModel
 import com.littleapp.weather.utils.DATA
 import com.littleapp.weather.utils.DialogManager
 import com.littleapp.weather.utils.isPermissionGranted
-import com.squareup.picasso.Picasso
+import coil.load
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -106,7 +106,7 @@ class MainFragment : Fragment() {
             tvCondition.text = weather.condition
             tvCurrentTemp.text = weather.currentTemp.ifEmpty { maxMin }
             tvMaxMin.text = if (weather.currentTemp.isEmpty()) DATA.EMPTY else maxMin
-            Picasso.get().load("https:${weather.imageUrl}").into(imgIcon)
+            imgIcon.load("https:${weather.imageUrl}")
         }
     }
 

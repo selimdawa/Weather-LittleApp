@@ -8,9 +8,8 @@ appcompat = "1.7.1"
 material = "1.14.0"
 activityKtx = "1.13.0"
 constraintlayout = "2.2.1"
-picasso = "2.71828"
+coil = "2.7.0"
 playServicesLocation = "21.4.0"
-playServicesLocationLicense = "12.0.1"
 preferenceKtx = "1.2.1"
 timber = "5.0.1"
 volley = "1.2.1"
@@ -34,7 +33,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 #Image
-picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
+coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 #Lifecycle
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
@@ -54,7 +53,6 @@ hilt-navigation-fragment = { group = "androidx.hilt", name = "hilt-navigation-fr
 #Other's
 volley = { module = "com.android.volley:volley", version.ref = "volley" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
-play-services-location-license = { module = "com.google.android.gms:play-services-location-license", version.ref = "playServicesLocationLicense" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 [plugins]
