@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Geocoder
 import android.location.LocationManager
 import android.os.Bundle
 import android.provider.Settings
@@ -38,9 +39,14 @@ import com.littleapp.weather.utils.isPermissionGranted
 import com.littleapp.weather.utils.startRotation
 import com.littleapp.weather.utils.stopRotation
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Locale
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import timber.log.Timber
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 @AndroidEntryPoint
 class MainFragment : Fragment() {
@@ -75,13 +81,15 @@ class MainFragment : Fragment() {
         init()
         observeData()
         checkPermission()
-        binding.ibSync.startRotation()
-        checkLocation()
+        if (model.lastCity == null) {
+            binding.ibSync.startRotation()
+            checkLocation()
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        checkLocation()
+        if (model.lastCity == null) checkLocation()
     }
 
     private fun observeData() {
@@ -114,6 +122,7 @@ class MainFragment : Fragment() {
     }
 
     private fun getWeatherRequest(city: String) {
+        model.lastCity = city
         val url = "${DATA.BASE_URL_WEATHER}${DATA.API_KEY_WEATHER}&q=$city&days=3&aqi=no&alerts=no"
         val request = StringRequest(
             Request.Method.GET,
@@ -131,15 +140,41 @@ class MainFragment : Fragment() {
     }
 
     private fun parseWeatherData(result: String) {
-        val mainObject = JSONObject(result)
-        val list = parseDays(mainObject)
-        parseCurrentDate(mainObject, list)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val mainObject = JSONObject(result)
+            val cityName = getCityName(mainObject)
+            val list = parseDays(mainObject, cityName)
+            parseCurrentDate(mainObject, list, cityName)
+        }
     }
 
-    private fun parseDays(mainObject: JSONObject): List<WeatherModel> {
+    private suspend fun getCityName(mainObject: JSONObject): String = withContext(Dispatchers.IO) {
+        val location = mainObject.getJSONObject("location")
+        val name = location.getString("name")
+        val lat = location.getDouble("lat")
+        val lon = location.getDouble("lon")
+        val geocoder = Geocoder(requireContext(), Locale.getDefault())
+
+        return@withContext try {
+            val address = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                suspendCancellableCoroutine { continuation ->
+                    geocoder.getFromLocation(lat, lon, 1) { addresses ->
+                        continuation.resume(addresses.firstOrNull())
+                    }
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                geocoder.getFromLocation(lat, lon, 1)?.firstOrNull()
+            }
+            address?.locality ?: address?.subAdminArea ?: name
+        } catch (_: Exception) {
+            name
+        }
+    }
+
+    private fun parseDays(mainObject: JSONObject, cityName: String): List<WeatherModel> {
         val list = ArrayList<WeatherModel>()
         val daysArray = mainObject.getJSONObject("forecast").getJSONArray("forecastday")
-        val name = mainObject.getJSONObject("location").getString("name")
 
         for (i in 0 until daysArray.length()) {
             val day = daysArray.getJSONObject(i)
@@ -148,7 +183,7 @@ class MainFragment : Fragment() {
 
             list.add(
                 WeatherModel(
-                    city = name,
+                    city = cityName,
                     time = day.getString("date"),
                     condition = condition.getString("text"),
                     currentTemp = DATA.EMPTY,
@@ -163,14 +198,14 @@ class MainFragment : Fragment() {
         return list
     }
 
-    private fun parseCurrentDate(mainObject: JSONObject, weatherItem: List<WeatherModel>) {
+    private fun parseCurrentDate(mainObject: JSONObject, weatherItem: List<WeatherModel>, cityName: String) {
         if (weatherItem.isEmpty()) return
         val current = mainObject.getJSONObject("current")
         val condition = current.getJSONObject("condition")
         val firstDay = weatherItem[0]
 
         val item = WeatherModel(
-            city = mainObject.getJSONObject("location").getString("name"),
+            city = cityName,
             time = current.getString("last_updated"),
             condition = condition.getString("text"),
             currentTemp = "${current.getString("temp_c")}°C",
@@ -191,7 +226,7 @@ class MainFragment : Fragment() {
 
         binding.ibSync.setOnClickListener {
             binding.ibSync.startRotation()
-            checkLocation()
+            model.lastCity?.let { getWeatherRequest(it) } ?: checkLocation()
         }
         binding.ibSearch.setOnClickListener {
             DialogManager.searchByNameDialog(requireContext(), object : DialogManager.Listener {

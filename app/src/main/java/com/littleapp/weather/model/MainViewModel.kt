@@ -21,6 +21,8 @@ class MainViewModel @Inject constructor(private val dao: WeatherDao) : ViewModel
     private val _liveDataCurrent = MutableStateFlow<WeatherModel?>(null)
     val liveDataCurrent: StateFlow<WeatherModel?> = _liveDataCurrent.asStateFlow()
 
+    var lastCity: String? = null
+
     val savedWeather: StateFlow<WeatherModel?> = dao.getLatestWeather()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
