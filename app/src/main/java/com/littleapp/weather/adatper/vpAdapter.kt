@@ -1,4 +1,4 @@
-package com.littleapp.weather.Adatper
+package com.littleapp.weather.adatper
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity

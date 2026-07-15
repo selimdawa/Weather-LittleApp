@@ -1,4 +1,4 @@
-package com.littleapp.weather.Adatper
+package com.littleapp.weather.adatper
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.littleapp.weather.databinding.ItemWeatherBinding
-import com.littleapp.weather.Model.WeatherModel
+import com.littleapp.weather.model.WeatherModel
 import com.squareup.picasso.Picasso
 
 class WeatherAdapter(private val listener: Listener?) :

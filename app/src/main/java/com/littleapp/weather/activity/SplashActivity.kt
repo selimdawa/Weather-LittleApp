@@ -1,15 +1,17 @@
-package com.littleapp.weather.Activity
+package com.littleapp.weather.activity
 
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
-import com.littleapp.weather.Unit.CLASS
-import com.littleapp.weather.Unit.THEME
-import com.littleapp.weather.Unit.VOID
+import com.littleapp.weather.utils.CLASS
+import com.littleapp.weather.utils.THEME
+import com.littleapp.weather.utils.VOID
 import com.littleapp.weather.databinding.ActivitySplashBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SplashActivity : AppCompatActivity() {
 
     private var _binding: ActivitySplashBinding? = null

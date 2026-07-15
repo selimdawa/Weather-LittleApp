@@ -1,4 +1,4 @@
-package com.littleapp.weather
+package com.littleapp.weather.utils
 
 import android.app.AlertDialog
 import android.content.Context

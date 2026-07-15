@@ -1,4 +1,4 @@
-package com.littleapp.weather.Fragment
+package com.littleapp.weather.fragment
 
 import android.Manifest
 import android.content.Context
@@ -24,17 +24,19 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.material.tabs.TabLayoutMediator
-import com.littleapp.weather.DialogManager
-import com.littleapp.weather.Unit.DATA
-import com.littleapp.weather.Adatper.vpAdapter
+import com.littleapp.weather.utils.DialogManager
+import com.littleapp.weather.utils.DATA
+import com.littleapp.weather.adatper.vpAdapter
 import com.littleapp.weather.databinding.FragmentMainBinding
-import com.littleapp.weather.isPermissionGranted
-import com.littleapp.weather.Model.MainViewModel
-import com.littleapp.weather.Model.WeatherModel
+import com.littleapp.weather.utils.isPermissionGranted
+import com.littleapp.weather.model.MainViewModel
+import com.littleapp.weather.model.WeatherModel
 import com.squareup.picasso.Picasso
+import dagger.hilt.android.AndroidEntryPoint
 import org.json.JSONObject
 import timber.log.Timber
 
+@AndroidEntryPoint
 class MainFragment : Fragment() {
 
     private lateinit var pLauncher: ActivityResultLauncher<String>

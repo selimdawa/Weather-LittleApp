@@ -1,4 +1,4 @@
-package com.littleapp.weather.Fragment
+package com.littleapp.weather.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,10 +8,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.littleapp.weather.databinding.FragmentDaysBinding
-import com.littleapp.weather.Adatper.WeatherAdapter
-import com.littleapp.weather.Model.MainViewModel
-import com.littleapp.weather.Model.WeatherModel
+import com.littleapp.weather.adatper.WeatherAdapter
+import com.littleapp.weather.model.MainViewModel
+import com.littleapp.weather.model.WeatherModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class DaysFragment : Fragment(), WeatherAdapter.Listener {
 
     private var _binding: FragmentDaysBinding? = null

@@ -1,6 +1,6 @@
-package com.littleapp.weather.Unit
+package com.littleapp.weather.utils
 
-import com.littleapp.weather.Activity.*
+import com.littleapp.weather.activity.*
 
 object CLASS {
     val MAIN: Class<*> = MainActivity::class.java

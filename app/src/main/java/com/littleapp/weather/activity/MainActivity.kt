@@ -1,11 +1,13 @@
-package com.littleapp.weather.Activity
+package com.littleapp.weather.activity
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.littleapp.weather.Fragment.MainFragment
+import com.littleapp.weather.fragment.MainFragment
 import com.littleapp.weather.R
 import com.littleapp.weather.databinding.ActivityMainBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private var _binding: ActivityMainBinding? = null

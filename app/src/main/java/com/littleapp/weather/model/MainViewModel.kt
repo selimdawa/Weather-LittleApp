@@ -1,9 +1,12 @@
-package com.littleapp.weather.Model
+package com.littleapp.weather.model
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class MainViewModel : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor() : ViewModel() {
     val liveDataCurrent = MutableLiveData<WeatherModel>()
     val liveDataList = MutableLiveData<List<WeatherModel>>()
 }

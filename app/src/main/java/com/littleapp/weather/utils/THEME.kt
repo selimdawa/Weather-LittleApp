@@ -1,4 +1,4 @@
-package com.littleapp.weather.Unit
+package com.littleapp.weather.utils
 
 import android.content.Context
 import androidx.preference.PreferenceManager
